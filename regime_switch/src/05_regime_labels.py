@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from fredapi import Fred
 from pathlib import Path
+import glob
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -13,7 +14,8 @@ fred = Fred(api_key='f567e3eeba77b70588031a6329c4e5bb')
 
 # ── Date spine from panel ─────────────────────────────────────────────────────
 print("Loading panel date spine...")
-panel = pd.read_parquet(DATA_DIR / "panel_v1_20260328.parquet", columns=['yyyymm'])
+panel_files = sorted(glob.glob(str(DATA_DIR / "panel_v1_*.parquet")))
+panel = pd.read_parquet(panel_files[-1], columns=['yyyymm'])
 dates = panel['yyyymm'].drop_duplicates().sort_values()
 date_index = pd.to_datetime(dates.astype(str), format='%Y%m') + pd.offsets.MonthEnd(0)
 date_df = pd.DataFrame({'date': date_index, 'yyyymm': dates.values})

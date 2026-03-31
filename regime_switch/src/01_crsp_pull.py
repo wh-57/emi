@@ -15,8 +15,8 @@ db = wrds.Connection(wrds_username='shifty_nifty')
 print("Pulling CRSP msf...")
 
 crsp = db.raw_sql("""
-    SELECT a.permno, a.date, a.ret, a.retx,
-           b.shrcd, b.exchcd,
+    SELECT a.permno, a.date, a.ret, a.retx, a.vol,
+           b.shrcd, b.exchcd, b.siccd,
            a.prc, a.shrout
     FROM crsp.msf AS a
     JOIN crsp.msenames AS b

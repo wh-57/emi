@@ -27,29 +27,30 @@ GKX_94 = [
 
 # ── Signals to construct from Compustat in 03_compustat_pull.py ──────────────
 CONSTRUCT_IN_03 = [
-    'cashdebt', 'currat', 'depr', 'invest', 'mvel1', 'pchcurrat', 'pchdepr',
+    'aeavol', 'bm_ia', 'cashdebt', 'cfp_ia', 'chempia', 'chpmia', 'currat', 'depr',
+    'invest', 'mvel1', 'mve_ia', 'pchcapx_ia', 'pchcurrat', 'pchdepr',
     'pchgm_pchsale', 'pchquick', 'pchsaleinv', 'quick', 'rd_sale', 'roavol',
     'roeq', 'roic', 'salecash', 'saleinv', 'salerec', 'secured', 'securedind',
-    'sgr', 'stdacc'
+    'sgr', 'stdacc', 'std_dolvol', 'turn'
 ]
 
 # ── OAP name mapping ──────────────────────────────────────────────────────────
 MANUAL_MAP = {
     'absacc':           'AbnormalAccruals',
     'acc':              'Accruals',
-    'aeavol':           'AnnouncementReturn',
+    # 'aeavol':           'AnnouncementReturn',
     'age':              'FirmAge',
     'agr':              'AssetGrowth',
     'baspread':         'BidAskSpread',
-    'betasq':           'Beta',
-    'bm_ia':            'BMdec',
+    'betasq':           'BetaSquared',
+    # 'bm_ia':            'BMdec',
     'cashpr':           'CashProd',
-    'cfp_ia':           'cfp',
+    # 'cfp_ia':           'cfp',
     'chatoia':          'ChAssetTurnover',
     'chcsho':           'CompEquIss',
-    'chempia':          'hire',
+    # 'chempia':          'hire',
     'chmom':            'MomRev',
-    'chpmia':           'ChForecastAccrual',
+    # 'chpmia':           'ChForecastAccrual',
     'chtx':             'ChTax',
     'cinvest':          'Investment',
     'convind':          'ConvDebt',
@@ -65,9 +66,8 @@ MANUAL_MAP = {
     'lgr':              'CompositeDebtIssuance',
     'mom1m':            'MRreversal',
     'mom36m':           'LRreversal',
-    'mve_ia':           'IndMom',
     'nincr':            'EarningsStreak',
-    'pchcapx_ia':       'grcapx',
+    # 'pchcapx_ia':       'grcapx',
     'pchsale_pchinvt':  'ChInv',
     'pchsale_pchrect':  'ChNWC',
     'pchsale_pchxsga':  'GrAdExp',
@@ -76,10 +76,10 @@ MANUAL_MAP = {
     'retvol':           'RealizedVol',
     'rsup':             'RevenueSurprise',
     'sin':              'sinAlgo',
-    'std_dolvol':       'DolVol',
+    # 'std_dolvol':       'VolSD',
     'stdcf':            'VarCF',
     'tb':               'Tax',
-    'turn':             'ShareVol',
+    # 'turn':             'ShareVol',
     'zerotrade':        'zerotrade6M',
 }
 

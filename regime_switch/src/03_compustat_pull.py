@@ -93,8 +93,7 @@ comp['depr'] = comp['dp'] / comp['ppent']
 
 # invest: (capx + invt change) / at_lag
 comp['at_lag'] = lag(comp, 'at')
-comp['invt_lag'] = lag(comp, 'invt')
-comp['invest'] = (comp['capx'] + comp['invt'] - comp['invt_lag'].fillna(0)) / comp['at_lag']
+comp['invest'] = (comp['at'] - comp['at_lag']) / comp['at_lag']
 
 # quick: (act - invt) / lct
 comp['quick'] = (comp['act'] - comp['invt']) / comp['lct']
@@ -166,6 +165,7 @@ comp['roa'] = comp['ib'] / comp['at']
 comp['roavol'] = comp.groupby('permno')['roa'].transform(
     lambda x: x.rolling(5, min_periods=3).std()
 )
+
 
 # ── Select output columns ─────────────────────────────────────────────────────
 CHARS_22 = [

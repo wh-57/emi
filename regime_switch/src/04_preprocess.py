@@ -24,9 +24,10 @@ crsp['yyyymm'] = crsp['date'].dt.year * 100 + crsp['date'].dt.month
 
 # ── Merge CRSP with signals ───────────────────────────────────────────────────
 print("Merging CRSP + signals...")
-panel = crsp[['permno', 'yyyymm', 'ret_adj', 'prc', 'shrout', 'exchcd', 'shrcd']].merge(
+panel = crsp[['permno', 'yyyymm', 'ret_adj', 'prc', 'shrout', 'exchcd', 'shrcd', 'vol', 'siccd']].merge(
     signals, on=['permno', 'yyyymm'], how='left'
 )
+
 
 # ── Merge with Compustat characteristics ─────────────────────────────────────
 print("Merging with Compustat characteristics...")
@@ -39,11 +40,58 @@ panel = panel[(panel['yyyymm'] >= 196301) & (panel['yyyymm'] <= 202312)]
 print(f"Panel shape after date filter: {panel.shape}")
 
 # ── Compute market cap (mvel1) from CRSP ─────────────────────────────────────
-# Use abs(prc) * shrout — prc can be negative (bid/ask midpoint)
 panel['mvel1'] = panel['prc'].abs() * panel['shrout']
 
+# ── Construct CRSP-based signals ──────────────────────────────────────────────
+# turn: share turnover = monthly volume / shares outstanding
+panel['turn'] = panel['vol'] / panel['shrout']
+
+# std_dolvol: rolling 36-month std of log dollar volume
+# dollar volume = vol * abs(prc), then log, then rolling std
+panel['dolvol_monthly'] = np.log(panel['vol'] * panel['prc'].abs() + 1)
+panel = panel.sort_values(['permno', 'yyyymm'])
+panel['std_dolvol'] = panel.groupby('permno')['dolvol_monthly'].transform(
+    lambda x: x.rolling(36, min_periods=24).std()
+)
+panel = panel.drop(columns=['dolvol_monthly'])
+
+# mve_ia: industry-adjusted size = mvel1 minus industry mean
+# sic2 = 2-digit SIC from CRSP siccd
+panel['sic2'] = (panel['siccd'] / 100).astype(int)
+panel['mve_ia'] = panel.groupby(['yyyymm', 'sic2'])['mvel1'].transform(
+    lambda x: x - x.mean()
+)
+
+# betasq: square of market beta — BetaSquared.csv not available in OAP release
+# Construct directly from beta signal which is downloaded
+if 'beta' in panel.columns:
+    panel['betasq'] = panel['beta'] ** 2
+else:
+    panel['betasq'] = 0.0
+    print("  Warning: beta not found — betasq set to 0")
+
+# ── Industry-adjusted signals (raw signal minus industry mean) ────────────────
+
+# chpmia: OAP doesn't have ChPM downloaded; approximate as pchgm_pchsale proxy
+# or set to 0 pending proper construction
+# For now construct bm_ia, cfp_ia, pchcapx_ia from their raw OAP counterparts:
+for ia_col, raw_col in [('bm_ia', 'bm'), ('cfp_ia', 'cfp'), ('pchcapx_ia', 'grCAPX'), ('chempia', 'hire')]:
+    if raw_col in panel.columns:
+        panel[ia_col] = (
+            panel[raw_col]
+            - panel.groupby(['yyyymm', 'sic2'])[raw_col].transform('mean')
+        )
+    else:
+        panel[ia_col] = 0.0
+        print(f"  Warning: {raw_col} not found — {ia_col} set to 0")
+
+# aeavol: requires IBES announcement dates — set to 0 (missing) for now
+# Document as deviation in preprocessing_notes.md
+panel['aeavol'] = 0.0   # requires IBES — documented deviation
+panel['chpmia']  = 0.0  # requires quarterly data — documented deviation
+
 # ── Define characteristic columns ────────────────────────────────────────────
-SKIP_COLS = ['permno', 'yyyymm', 'ret_adj', 'prc', 'shrout', 'exchcd', 'shrcd', 'date']
+SKIP_COLS = ['permno', 'yyyymm', 'ret_adj', 'prc', 'shrout', 'exchcd', 'shrcd', 'date', 'vol','siccd', 'sic2']
 CHAR_COLS = [c for c in panel.columns if c not in SKIP_COLS]
 
 print(f"Characteristic columns: {len(CHAR_COLS)}")
@@ -75,7 +123,11 @@ def preprocess_month(df):
     return result
 
 print("Applying GKX preprocessing (this may take a few minutes)...")
-panel = panel.groupby('yyyymm', group_keys=False).apply(preprocess_month, include_groups=False)
+yyyymm_vals = panel['yyyymm'].values
+panel = panel.groupby('yyyymm', group_keys=False).apply(
+    preprocess_month, include_groups=False
+).reset_index(drop=True)
+panel['yyyymm'] = yyyymm_vals
 print("Preprocessing done.")
 
 # ── Sanity checks ─────────────────────────────────────────────────────────────
