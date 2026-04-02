@@ -3,7 +3,7 @@
 ===================================================
 Run BEFORE writing the Phase 3A pre-registration memo.
 
-Two diagnostics flagged by all 4 LLMs as essential:
+Two diagnostics flagged as essential:
 
 (A) Angle between PC1 and shift_resid
     Quantifies how geometrically different the representation direction
